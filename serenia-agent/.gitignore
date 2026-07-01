@@ -1,0 +1,20 @@
+# Configuration runtime (contient secrets)
+config/
+logs/
+
+# Environnement
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp

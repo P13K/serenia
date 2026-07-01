@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serenia — Tableau de bord</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #F0F4F8; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    .tab-active { border-bottom: 2px solid #1B6FD8; color: #1B6FD8; font-weight: 600; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #64748B; }
+    .tab-inactive:hover { color: #334155; }
+    .modal-bg { background: rgba(15,30,45,0.55); backdrop-filter: blur(4px); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-[#0F1E2D] text-white">
+    <div class="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-7">
+        <!-- Logo -->
+        <div class="flex items-center gap-2.5">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="url(#logoGrad)"/>
+            <path d="M14 5L20 8V14C20 17.5 17.2 20.7 14 22C10.8 20.7 8 17.5 8 14V8L14 5Z" fill="white" fill-opacity="0.95" stroke="white" stroke-width="0.5"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#1B6FD8"/>
+                <stop offset="1" stop-color="#0A3D8F"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="font-bold text-lg tracking-tight">Serenia</span>
+          <span class="text-white/30 text-xs ml-1 mono">v0.1</span>
+        </div>
+        <!-- Tabs -->
+        <nav class="flex items-end h-16 gap-1 text-sm">
+          <button onclick="showTab('overview')" id="tab-overview" class="px-3 h-16 tab-active transition-colors">Vue d'ensemble</button>
+          <button onclick="showTab('storage')" id="tab-storage" class="px-3 h-16 tab-inactive transition-colors">Stockage OVH</button>
+        </nav>
+      </div>
+      <div class="flex items-center gap-5 text-sm">
+        <div class="flex items-center gap-2 text-white/75">
+          <div id="health_dot" class="w-1.5 h-1.5 rounded-full bg-[#4A9B5C] pulse-dot"></div>
+          <span id="health_label">Chargement…</span>
+        </div>
+        <div id="header_endpoint" class="mono text-white/40 text-xs hidden sm:block"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-8 py-10">
+
+    <!-- ══ TAB OVERVIEW ══════════════════════════════════════ -->
+    <div id="view-overview">
+
+      <!-- Titre + action -->
+      <div class="flex items-start justify-between mb-8">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">État général</p>
+          <h1 class="text-4xl font-800 font-extrabold text-[#0F1E2D] leading-tight" id="status_headline">Chargement…</h1>
+          <p id="status_sub" class="text-slate-500 mt-2 text-sm"></p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="openAddSource()" class="border border-[#0F1E2D]/20 text-[#0F1E2D] px-4 py-2.5 rounded-md hover:bg-white text-sm font-medium">+ Ajouter une source</button>
+          <button id="btn_backup" onclick="runBackup()" class="bg-[#1B6FD8] text-white px-5 py-2.5 rounded-md hover:bg-[#1558B0] font-medium text-sm">▶ Sauvegarder</button>
+        </div>
+      </div>
+
+      <!-- Ribbon 90 jours -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Historique des sauvegardes</p>
+            <p class="text-sm text-slate-500 mt-1">90 derniers jours — chaque barre = 1 jour</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-slate-500">
+            <span class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-[#4A9B5C]"></div>Réussi</span>
+            <span class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-[#E8A53B]"></div>Avertissement</span>
+            <span class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-[#C25B52]"></div>Échec</span>
+            <span class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-slate-200"></div>Aucun</span>
+          </div>
+        </div>
+        <div id="ribbon" class="flex gap-[3px] items-end h-14"></div>
+        <div class="flex justify-between mt-2 text-xs text-slate-400 mono">
+          <span>J-90</span><span>J-60</span><span>J-30</span><span>Aujourd'hui</span>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Dernière sauvegarde</div>
+          <p id="kpi_last" class="text-2xl font-bold text-[#0F1E2D]">—</p>
+          <p id="kpi_last_sub" class="text-xs text-slate-400 mt-1">—</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Snapshots</div>
+          <p id="kpi_snapshots" class="text-2xl font-bold text-[#0F1E2D]">—</p>
+          <p class="text-xs text-slate-400 mt-1">sur OVHcloud</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Coût mensuel estimé</div>
+          <p id="kpi_cost" class="text-2xl font-bold text-[#0F1E2D]">—</p>
+          <p id="kpi_cost_sub" class="text-xs text-slate-400 mt-1">Standard 3-AZ · 0,014 €/Go</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <div class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Prochaine ⏱</div>
+          <p id="kpi_next" class="text-2xl font-bold text-[#0F1E2D]">—</p>
+          <p class="text-xs text-slate-400 mt-1">planifiée</p>
+        </div>
+      </div>
+
+      <!-- Sources -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h2 class="font-semibold text-[#0F1E2D]">Sources surveillées</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Dossiers sauvegardés vers OVHcloud</p>
+          </div>
+          <button onclick="openAddSource()" class="text-xs text-slate-500 hover:text-[#0F1E2D] border border-slate-200 px-3 py-1.5 rounded-md hover:bg-slate-50">+ Ajouter</button>
+        </div>
+        <div id="sources_table">
+          <div class="px-6 py-10 text-center text-slate-400 text-sm">Chargement…</div>
+        </div>
+      </div>
+
+      <!-- Journal -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mb-10 shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="font-semibold text-[#0F1E2D]">Journal d'activité</h2>
+        </div>
+        <div id="journal_body">
+          <div class="px-6 py-10 text-center text-slate-400 text-sm">Aucune activité récente</div>
+        </div>
+      </div>
+
+      <!-- Bandeau souveraineté -->
+      <div class="bg-[#0F1E2D] text-white rounded-xl p-6 flex items-center gap-5">
+        <div class="w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center" style="background:linear-gradient(135deg,#1B6FD8,#0A3D8F)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold">Chiffrement de bout en bout activé</p>
+          <p class="text-sm text-white/55 mt-1">Vos données sont chiffrées sur votre NAS avant tout transfert. OVHcloud stocke des données opaques. Région : <span id="footer_region" class="mono text-white/80">—</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAB STORAGE ════════════════════════════════════════ -->
+    <div id="view-storage" class="hidden">
+      <div class="mb-8">
+        <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Classes de stockage OVHcloud</p>
+        <h1 class="text-3xl font-extrabold text-[#0F1E2D]">Choisir la bonne classe</h1>
+        <p class="text-slate-500 mt-2 text-sm">Tarifs officiels OVHcloud · sans frais cachés (API, ingress, egress inclus)</p>
+      </div>
+
+      <!-- Calculateur -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6 shadow-sm">
+        <p class="text-sm font-semibold text-[#0F1E2D] mb-4">Estimez votre coût selon votre volume</p>
+        <div class="flex items-center gap-4">
+          <input type="range" id="vol_slider" min="1" max="2000" value="188" oninput="updateStorageCalc()" class="flex-1 accent-[#1B6FD8]" />
+          <div class="flex items-center gap-2">
+            <input type="number" id="vol_input" value="188" min="1" max="100000" oninput="updateStorageCalcFromInput()" class="mono w-24 text-right px-2 py-1.5 border border-slate-200 rounded-md text-sm" />
+            <span class="text-sm text-slate-500">Go</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des classes -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+        <table class="w-full">
+          <thead>
+            <tr class="text-xs font-semibold uppercase tracking-widest text-slate-400 border-b border-slate-100">
+              <th class="text-left px-6 py-3">Classe</th>
+              <th class="text-left px-6 py-3">Usage recommandé</th>
+              <th class="text-right px-6 py-3">€/Go/mois</th>
+              <th class="text-right px-6 py-3">Restauration</th>
+              <th class="text-right px-6 py-3" id="th_cost">Coût pour <span id="th_vol">188</span> Go</th>
+              <th class="text-left px-6 py-3">Disponibilité</th>
+            </tr>
+          </thead>
+          <tbody id="storage_table_body"></tbody>
+        </table>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-400">
+          Tarifs HT · Région eu-west-par (Paris 3-AZ) · Frais d'appels API, ingress et egress vers les services OVHcloud inclus. Trafic public sortant : inclus jusqu'au quota mensuel.
+          <a href="https://www.ovhcloud.com/fr/public-cloud/prices/" target="_blank" class="text-[#1B6FD8] ml-1 hover:underline">Voir la grille tarifaire officielle →</a>
+        </div>
+      </div>
+
+      <!-- Recommandation -->
+      <div id="storage_recommendation" class="bg-[#1B6FD8]/8 border border-[#1B6FD8]/20 rounded-xl p-5 text-sm text-[#0F1E2D]">
+        <p class="font-semibold mb-1">💡 Recommandation pour votre usage</p>
+        <p id="reco_text" class="text-slate-600"></p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL : Ajouter une source -->
+  <div id="modal_add_source" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-bg">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-bold text-[#0F1E2D] text-lg">Ajouter une source</h3>
+        <button onclick="closeAddSource()" class="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
+      </div>
+      <p class="text-sm text-slate-500 mb-4">Sélectionnez un dossier de votre NAS à inclure dans les sauvegardes.</p>
+      <div id="modal_folders" class="border border-slate-200 rounded-lg overflow-hidden mb-4 max-h-72 overflow-y-auto">
+        <div class="p-6 text-center text-slate-400 text-sm">Chargement…</div>
+      </div>
+      <div id="modal_custom" class="mb-4">
+        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Ou saisir un chemin manuellement</label>
+        <input type="text" id="custom_path" placeholder="/volume1/mon-dossier" class="w-full mono text-sm px-3 py-2.5 border border-slate-200 rounded-md focus:outline-none focus:border-[#1B6FD8]" />
+      </div>
+      <div id="modal_result" class="hidden text-sm mb-4"></div>
+      <div class="flex gap-3 justify-end">
+        <button onclick="closeAddSource()" class="text-sm text-slate-500 px-4 py-2 border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
+        <button id="btn_add_source" onclick="addSource()" class="bg-[#1B6FD8] text-white text-sm px-5 py-2 rounded-md hover:bg-[#1558B0] font-medium">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Constantes tarifaires OVH ───────────────────────────
+    const STORAGE_CLASSES = [
+      {
+        name: 'Standard 3-AZ',
+        badge: '✓ Votre classe actuelle',
+        current: true,
+        usage: 'Sauvegardes actives, accès fréquent, haute résilience multi-datacenter',
+        price_per_gb: 0.014,
+        restore_cost: null,
+        availability: '99.999%',
+        detail: 'Paris 3 zones',
+      },
+      {
+        name: 'Standard 1-AZ',
+        badge: '',
+        current: false,
+        usage: 'Sauvegardes économiques, résilience mono-zone suffisante',
+        price_per_gb: 0.0071,
+        restore_cost: null,
+        availability: '99.99%',
+        detail: 'GRA, SBG, DE…',
+      },
+      {
+        name: 'High Performance',
+        badge: '',
+        current: false,
+        usage: 'Restaurations fréquentes, faible latence, analytics',
+        price_per_gb: 0.018,
+        restore_cost: null,
+        availability: '99.99%',
+        detail: 'NVMe SSD',
+      },
+      {
+        name: 'Cold Archive',
+        badge: '',
+        current: false,
+        usage: 'Archivage long terme (>1 an), données rarement consultées',
+        price_per_gb: 0.0017,
+        restore_cost: 0.005,
+        availability: '99.90%',
+        detail: 'Bandes magnétiques, délai restauration',
+      },
+    ];
+
+    // ─── État ────────────────────────────────────────────────
+    let currentStatus = null;
+    let selectedSource = null;
+
+    // ─── Onglets ─────────────────────────────────────────────
+    function showTab(tab) {
+      ['overview','storage'].forEach(t => {
+        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('tab-' + t).className = 'px-3 h-16 transition-colors ' + (t === tab ? 'tab-active' : 'tab-inactive');
+      });
+      if (tab === 'storage') updateStorageCalc();
+    }
+
+    // ─── Ribbon 90 jours ─────────────────────────────────────
+    function buildRibbon(snapshots) {
+      const ribbon = document.getElementById('ribbon');
+      const byDay = {};
+      (snapshots || []).forEach(s => {
+        const d = new Date(s.time).toDateString();
+        byDay[d] = (byDay[d] || 0) + 1;
+      });
+      const bars = [];
+      for (let i = 89; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86400000).toDateString();
+        const count = byDay[d] || 0;
+        const color = count > 0 ? '#4A9B5C' : '#E2E8F0';
+        const h = count > 0 ? '100%' : '40%';
+        bars.push(`<div class="flex-1 rounded-sm" style="background:${color};height:${h};min-width:4px;" title="${d} · ${count} snapshot(s)"></div>`);
+      }
+      ribbon.innerHTML = bars.join('');
+    }
+
+    // ─── Calcul de coût ─────────────────────────────────────
+    function estimateCost(totalBytes) {
+      if (!totalBytes) return null;
+      const gb = totalBytes / 1e9;
+      return (gb * 0.014).toFixed(2);
+    }
+
+    // ─── Statut ──────────────────────────────────────────────
+    async function refresh() {
+      try {
+        const r = await fetch('/api/status');
+        const d = await r.json();
+        if (!d.configured) { window.location.href = '/setup'; return; }
+        currentStatus = d;
+
+        document.getElementById('header_endpoint').textContent = d.endpoint;
+        document.getElementById('footer_region').textContent = d.region;
+        document.getElementById('kpi_snapshots').textContent = d.snapshots_count;
+        document.getElementById('kpi_next').textContent = String(d.schedule_hour).padStart(2,'0') + ':00';
+
+        buildRibbon(d.last_snapshots || []);
+
+        if (d.last_backup_at) {
+          const dt = new Date(d.last_backup_at);
+          document.getElementById('kpi_last').textContent = timeAgo(dt);
+          document.getElementById('kpi_last_sub').textContent = dt.toLocaleString('fr-FR');
+          document.getElementById('status_headline').textContent = d.last_backup_status === 'ok'
+            ? '✅ Vos données sont à l\'abri.'
+            : '⚠️ La dernière sauvegarde a rencontré une erreur.';
+          document.getElementById('status_sub').textContent = `Dernier backup ${timeAgo(dt)} · ${d.snapshots_count} snapshot(s) disponible(s).`;
+          document.getElementById('health_label').textContent = d.last_backup_status === 'ok' ? 'Système sain' : 'Attention requise';
+          document.getElementById('health_dot').className = 'w-1.5 h-1.5 rounded-full pulse-dot ' + (d.last_backup_status === 'ok' ? 'bg-[#4A9B5C]' : 'bg-[#E8A53B]');
+        } else {
+          document.getElementById('status_headline').textContent = 'Aucune sauvegarde encore lancée.';
+          document.getElementById('status_sub').textContent = 'Serenia est configuré. Lancez votre première sauvegarde.';
+          document.getElementById('health_label').textContent = 'Prêt';
+          document.getElementById('kpi_last').textContent = 'Jamais';
+          document.getElementById('kpi_last_sub').textContent = '—';
+          document.getElementById('health_dot').className = 'w-1.5 h-1.5 rounded-full bg-[#E8A53B] pulse-dot';
+        }
+
+        // Coût
+        if (d.repo_size_bytes) {
+          const gb = (d.repo_size_bytes / 1e9).toFixed(2);
+          const cost = estimateCost(d.repo_size_bytes);
+          document.getElementById('kpi_cost').textContent = cost + ' €';
+          document.getElementById('kpi_cost_sub').textContent = `${gb} Go · Standard 3-AZ`;
+        } else {
+          document.getElementById('kpi_cost').textContent = '—';
+        }
+
+        // Sources
+        const st = document.getElementById('sources_table');
+        if (!d.sources || d.sources.length === 0) {
+          st.innerHTML = '<div class="px-6 py-8 text-center text-slate-400 text-sm">Aucune source configurée. <button onclick="openAddSource()" class="text-[#1B6FD8] underline">Ajouter une source</button></div>';
+        } else {
+          st.innerHTML = `<table class="w-full">
+            <thead><tr class="text-xs font-semibold uppercase tracking-widest text-slate-400 border-b border-slate-100">
+              <th class="text-left px-6 py-3">État</th>
+              <th class="text-left px-6 py-3">Chemin</th>
+              <th class="text-right px-6 py-3">Actions</th>
+            </tr></thead>
+            <tbody>${d.sources.map(s => `
+              <tr class="border-b border-slate-50 last:border-b-0 hover:bg-slate-50">
+                <td class="px-6 py-3.5 text-base">✅</td>
+                <td class="px-6 py-3.5 mono text-sm text-[#0F1E2D]">${s}</td>
+                <td class="px-6 py-3.5 text-right">
+                  <button onclick="removeSource('${s}')" class="text-xs text-slate-400 hover:text-red-500">Retirer</button>
+                </td>
+              </tr>`).join('')}
+            </tbody></table>`;
+        }
+
+        // Journal fictif basé sur les snapshots récents
+        const journal = document.getElementById('journal_body');
+        if (d.last_snapshots && d.last_snapshots.length > 0) {
+          const rows = d.last_snapshots.slice(-8).reverse().map(s => {
+            const dt = new Date(s.time);
+            return `<tr class="border-b border-slate-50 last:border-b-0 hover:bg-slate-50">
+              <td class="px-6 py-3 text-xs mono text-slate-400 whitespace-nowrap">${dt.toLocaleString('fr-FR')}</td>
+              <td class="px-6 py-3 text-sm text-[#0F1E2D]">✅ Snapshot créé</td>
+              <td class="px-6 py-3 mono text-sm text-slate-500">${(s.paths||[]).join(', ')}</td>
+              <td class="px-6 py-3 text-xs text-slate-400 mono">${s.id ? s.id.slice(0,8) : '—'}</td>
+            </tr>`;
+          }).join('');
+          journal.innerHTML = `<table class="w-full">
+            <thead><tr class="text-xs font-semibold uppercase tracking-widest text-slate-400 border-b border-slate-100">
+              <th class="text-left px-6 py-3">Date</th>
+              <th class="text-left px-6 py-3">Événement</th>
+              <th class="text-left px-6 py-3">Chemin</th>
+              <th class="text-left px-6 py-3">ID snapshot</th>
+            </tr></thead><tbody>${rows}</tbody></table>`;
+        }
+
+        // Storage tab slider sync
+        if (d.repo_size_bytes) {
+          const gb = Math.round(d.repo_size_bytes / 1e9) || 1;
+          document.getElementById('vol_slider').value = Math.min(gb, 2000);
+          document.getElementById('vol_input').value = gb;
+        }
+        updateStorageCalc();
+
+      } catch(e) { console.error(e); }
+    }
+
+    // ─── Tableau stockage ────────────────────────────────────
+    function updateStorageCalc() {
+      const gb = parseFloat(document.getElementById('vol_slider').value) || 1;
+      document.getElementById('vol_input').value = gb;
+      document.getElementById('th_vol').textContent = gb + ' Go';
+      renderStorageTable(gb);
+    }
+    function updateStorageCalcFromInput() {
+      const gb = parseFloat(document.getElementById('vol_input').value) || 1;
+      document.getElementById('vol_slider').value = Math.min(gb, 2000);
+      document.getElementById('th_vol').textContent = gb + ' Go';
+      renderStorageTable(gb);
+    }
+    function renderStorageTable(gb) {
+      const tbody = document.getElementById('storage_table_body');
+      tbody.innerHTML = STORAGE_CLASSES.map(c => {
+        const monthly = (gb * c.price_per_gb).toFixed(2);
+        const annual = (gb * c.price_per_gb * 12).toFixed(0);
+        return `<tr class="border-b border-slate-50 last:border-b-0 ${c.current ? 'bg-[#1B6FD8]/5' : ''}">
+          <td class="px-6 py-4">
+            <p class="font-semibold text-sm text-[#0F1E2D]">${c.name}</p>
+            ${c.current ? '<span class="text-xs text-[#1B6FD8] font-medium">✓ Actuelle</span>' : ''}
+            <p class="text-xs text-slate-400 mono mt-0.5">${c.detail}</p>
+          </td>
+          <td class="px-6 py-4 text-sm text-slate-600 max-w-xs">${c.usage}</td>
+          <td class="px-6 py-4 text-right mono text-sm font-medium text-[#0F1E2D]">${c.price_per_gb.toFixed(4)} €</td>
+          <td class="px-6 py-4 text-right text-sm text-slate-500">${c.restore_cost ? c.restore_cost.toFixed(3)+' €/Go' : 'Incluse'}</td>
+          <td class="px-6 py-4 text-right">
+            <p class="mono font-bold text-[#0F1E2D]">${monthly} €<span class="text-slate-400 font-normal">/mois</span></p>
+            <p class="text-xs text-slate-400">${annual} €/an</p>
+          </td>
+          <td class="px-6 py-4 text-sm text-slate-500">${c.availability}</td>
+        </tr>`;
+      }).join('');
+
+      // Recommandation
+      let reco = '';
+      if (gb < 50) reco = `Pour ${gb} Go, votre classe actuelle Standard 3-AZ (${(gb*0.014).toFixed(2)} €/mois) est optimale. La différence avec Standard 1-AZ (${(gb*0.0071).toFixed(2)} €/mois) est minime mais vous bénéficiez d'une résilience maximale.`;
+      else if (gb < 500) reco = `Pour ${gb} Go, vous payez ${(gb*0.014).toFixed(2)} €/mois en Standard 3-AZ. Vous pourriez économiser ${((gb*0.014)-(gb*0.0071)).toFixed(2)} €/mois en passant en Standard 1-AZ, ou basculer les snapshots de plus de 90 jours en Cold Archive (${(gb*0.0017).toFixed(2)} €/mois) via une règle lifecycle.`;
+      else reco = `Pour ${gb} Go, envisagez une stratégie en deux classes : Standard 3-AZ pour les 90 derniers jours (${(gb*0.3*0.014).toFixed(2)} €/mois estimé) et Cold Archive pour l'historique long terme (${(gb*0.7*0.0017).toFixed(2)} €/mois estimé). Économie potentielle : ${((gb*0.014)-(gb*0.3*0.014+gb*0.7*0.0017)).toFixed(2)} €/mois.`;
+      document.getElementById('reco_text').textContent = reco;
+    }
+
+    // ─── Ajouter source ──────────────────────────────────────
+    async function openAddSource() {
+      document.getElementById('modal_add_source').classList.remove('hidden');
+      document.getElementById('modal_result').classList.add('hidden');
+      document.getElementById('custom_path').value = '';
+      selectedSource = null;
+      const mf = document.getElementById('modal_folders');
+      mf.innerHTML = '<div class="p-6 text-center text-slate-400 text-sm">Analyse…</div>';
+      try {
+        const r = await fetch('/api/browse');
+        const d = await r.json();
+        const existing = currentStatus?.sources || [];
+        mf.innerHTML = d.folders.filter(f => !existing.includes(f.path)).map(f =>
+          `<label class="flex items-center gap-3 px-4 py-3 border-b border-slate-50 last:border-b-0 cursor-pointer hover:bg-slate-50">
+            <input type="radio" name="source_pick" value="${f.path}" class="accent-[#1B6FD8]" onchange="selectedSource='${f.path}';document.getElementById('custom_path').value=''" />
+            <div class="flex-1">
+              <p class="mono text-sm text-[#0F1E2D]">${f.path}</p>
+            </div>
+            <span class="text-sm text-slate-400">${f.size_display}</span>
+          </label>`
+        ).join('') || '<div class="p-4 text-center text-slate-400 text-sm">Tous les dossiers sont déjà ajoutés.</div>';
+      } catch(e) {
+        mf.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">Erreur de chargement.</div>';
+      }
+    }
+
+    function closeAddSource() {
+      document.getElementById('modal_add_source').classList.add('hidden');
+    }
+
+    async function addSource() {
+      const path = selectedSource || document.getElementById('custom_path').value.trim();
+      if (!path) { alert('Sélectionnez ou saisissez un chemin.'); return; }
+      const btn = document.getElementById('btn_add_source');
+      btn.disabled = true; btn.textContent = 'Ajout…';
+      try {
+        const r = await fetch('/api/add-source', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({path})
+        });
+        const d = await r.json();
+        const res = document.getElementById('modal_result');
+        res.classList.remove('hidden');
+        if (d.ok) {
+          res.className = 'text-sm mb-4 text-green-700 bg-green-50 rounded-md px-3 py-2';
+          res.textContent = '✓ Source ajoutée. Rechargement…';
+          setTimeout(() => { closeAddSource(); refresh(); }, 1200);
+        } else {
+          res.className = 'text-sm mb-4 text-red-700 bg-red-50 rounded-md px-3 py-2';
+          res.textContent = 'Erreur : ' + (d.error || 'inconnue');
+        }
+      } catch(e) {
+        const res = document.getElementById('modal_result');
+        res.classList.remove('hidden');
+        res.className = 'text-sm mb-4 text-red-700 bg-red-50 rounded-md px-3 py-2';
+        res.textContent = 'Erreur : ' + e.message;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Ajouter';
+      }
+    }
+
+    async function removeSource(path) {
+      if (!confirm(`Retirer "${path}" des sauvegardes ?`)) return;
+      await fetch('/api/remove-source', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+      refresh();
+    }
+
+    // ─── Backup ──────────────────────────────────────────────
+    async function runBackup() {
+      const btn = document.getElementById('btn_backup');
+      btn.disabled = true; btn.textContent = 'En cours…';
+      try {
+        const r = await fetch('/api/backup', {method:'POST'});
+        const d = await r.json();
+        btn.textContent = d.ok ? '✓ Terminé' : '✗ Erreur';
+        setTimeout(() => { btn.disabled=false; btn.textContent='▶ Sauvegarder'; refresh(); }, 2500);
+      } catch(e) {
+        btn.textContent = '✗ ' + e.message;
+        btn.disabled = false;
+      }
+    }
+
+    function timeAgo(dt) {
+      const s = Math.floor((Date.now() - dt) / 1000);
+      if (s < 60) return 'à l\'instant';
+      if (s < 3600) return `il y a ${Math.floor(s/60)} min`;
+      if (s < 86400) return `il y a ${Math.floor(s/3600)}h`;
+      return `il y a ${Math.floor(s/86400)}j`;
+    }
+
+    refresh();
+    setInterval(refresh, 30000);
+    renderStorageTable(188);
+  </script>
+
+</body>
+</html>

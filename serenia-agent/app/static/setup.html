@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serenia — Configuration initiale</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #F6F1E8; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .step { display: none; }
+    .step.active { display: block; }
+    input:focus, select:focus { outline: none; border-color: rgba(15,30,45,0.4); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-[#0F1E2D] text-white px-8 h-16 flex items-center">
+    <div class="max-w-4xl mx-auto w-full flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-full bg-[#E8A53B] flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F1E2D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="font-bold text-lg tracking-tight">Serenia</span>
+      <span class="text-white/40 text-sm ml-3">— Configuration initiale</span>
+    </div>
+  </header>
+
+  <!-- Stepper -->
+  <div class="bg-white border-b border-black/5 py-5 px-8">
+    <div class="max-w-4xl mx-auto flex items-center gap-2">
+      <div class="step-indicator flex items-center gap-2" data-step="1">
+        <div class="w-6 h-6 rounded-full bg-[#0F1E2D] text-white flex items-center justify-center text-xs font-medium">1</div>
+        <span class="text-xs font-medium text-[#0F1E2D] hidden sm:inline">OVHcloud</span>
+      </div>
+      <div class="flex-1 h-px bg-black/10"></div>
+      <div class="step-indicator flex items-center gap-2 opacity-40" data-step="2">
+        <div class="w-6 h-6 rounded-full bg-black/10 text-[#0F1E2D] flex items-center justify-center text-xs font-medium">2</div>
+        <span class="text-xs font-medium text-[#0F1E2D] hidden sm:inline">Chiffrement</span>
+      </div>
+      <div class="flex-1 h-px bg-black/10"></div>
+      <div class="step-indicator flex items-center gap-2 opacity-40" data-step="3">
+        <div class="w-6 h-6 rounded-full bg-black/10 text-[#0F1E2D] flex items-center justify-center text-xs font-medium">3</div>
+        <span class="text-xs font-medium text-[#0F1E2D] hidden sm:inline">Sources</span>
+      </div>
+      <div class="flex-1 h-px bg-black/10"></div>
+      <div class="step-indicator flex items-center gap-2 opacity-40" data-step="4">
+        <div class="w-6 h-6 rounded-full bg-black/10 text-[#0F1E2D] flex items-center justify-center text-xs font-medium">4</div>
+        <span class="text-xs font-medium text-[#0F1E2D] hidden sm:inline">Validation</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="flex-1 flex items-start justify-center px-8 py-12">
+    <div class="max-w-2xl w-full">
+
+      <!-- ─── ÉTAPE 1 : OVH ─────────────────────────────────────── -->
+      <section class="step active" data-step="1">
+        <p class="text-xs uppercase tracking-widest text-[#0F1E2D]/50 mb-2">Étape 1 sur 4</p>
+        <h1 class="text-3xl font-extrabold text-[#0F1E2D] mb-3 tracking-tight">Connexion à OVHcloud</h1>
+        <p class="text-[#0F1E2D]/60 mb-8">
+          Ces identifiants restent uniquement sur votre NAS. Serenia ne les envoie nulle part.
+        </p>
+
+        <div class="bg-white rounded-lg p-6 border border-black/8 space-y-5">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs uppercase tracking-wider text-[#0F1E2D]/60 mb-1.5 block">Région</label>
+              <select id="ovh_region" class="w-full mono text-sm px-3 py-2.5 border border-black/15 rounded-md">
+                <optgroup label="🇫🇷 France">
+                  <option value="eu-west-par" data-endpoint="s3.eu-west-par.io.cloud.ovh.net">eu-west-par — Paris 3-AZ ★ recommandé</option>
+                  <option value="gra" data-endpoint="s3.gra.io.cloud.ovh.net">gra — Gravelines</option>
+                  <option value="rbx" data-endpoint="s3.rbx.io.cloud.ovh.net">rbx — Roubaix</option>
+                  <option value="sbg" data-endpoint="s3.sbg.io.cloud.ovh.net">sbg — Strasbourg</option>
+                </optgroup>
+                <optgroup label="🇩🇪 Allemagne">
+                  <option value="de" data-endpoint="s3.de.io.cloud.ovh.net">de — Francfort</option>
+                </optgroup>
+                <optgroup label="🇵🇱 Pologne">
+                  <option value="waw" data-endpoint="s3.waw.io.cloud.ovh.net">waw — Varsovie</option>
+                </optgroup>
+                <optgroup label="🇬🇧 Royaume-Uni">
+                  <option value="uk" data-endpoint="s3.uk.io.cloud.ovh.net">uk — Londres</option>
+                </optgroup>
+                <optgroup label="🇮🇹 Italie">
+                  <option value="it" data-endpoint="s3.it.io.cloud.ovh.net">it — Milan</option>
+                </optgroup>
+                <optgroup label="🇨🇦 Canada">
+                  <option value="bhs" data-endpoint="s3.bhs.io.cloud.ovh.net">bhs — Beauharnois</option>
+                  <option value="t" data-endpoint="s3.t.io.cloud.ovh.net">t — Toronto</option>
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs uppercase tracking-wider text-[#0F1E2D]/60 mb-1.5 block">Nom du bucket</label>
+              <input id="ovh_bucket" type="text" placeholder="serenia-mon-nas" class="w-full mono text-sm px-3 py-2.5 border border-black/15 rounded-md" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs uppercase tracking-wider text-[#0F1E2D]/60 mb-1.5 block">Endpoint</label>
+            <input id="ovh_endpoint" type="text" value="s3.eu-west-par.io.cloud.ovh.net" readonly class="w-full mono text-sm px-3 py-2.5 border border-black/15 rounded-md bg-[#F6F1E8]/50 text-[#0F1E2D]/70" />
+          </div>
+
+          <div>
+            <label class="text-xs uppercase tracking-wider text-[#0F1E2D]/60 mb-1.5 block">Access Key ID</label>
+            <input id="ovh_access_key" type="text" placeholder="0b047d9449dd486db0f4c3c62914f1d1" class="w-full mono text-sm px-3 py-2.5 border border-black/15 rounded-md" />
+          </div>
+
+          <div>
+            <label class="text-xs uppercase tracking-wider text-[#0F1E2D]/60 mb-1.5 block">Secret Access Key</label>
+            <input id="ovh_secret_key" type="password" placeholder="••••••••••••••••••••••••••••••••" class="w-full mono text-sm px-3 py-2.5 border border-black/15 rounded-md" />
+          </div>
+
+          <div class="pt-3 border-t border-black/8 flex items-center justify-between">
+            <a href="https://docs.ovh.com/gb/en/storage/object-storage/" target="_blank" class="text-xs text-[#0F1E2D]/60 hover:text-[#0F1E2D] underline underline-offset-2">
+              Je n'ai pas encore de bucket OVH →
+            </a>
+            <div class="flex items-center gap-3">
+              <span id="test_result" class="text-xs"></span>
+              <button id="btn_test" onclick="testConnection()" class="text-sm px-4 py-2 border border-black/20 rounded-md hover:bg-[#F6F1E8] flex items-center gap-2">
+                Tester la connexion
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end mt-10">
+          <button id="btn_next_1" onclick="goStep(2)" disabled class="bg-[#0F1E2D] text-white px-6 py-2.5 rounded-md hover:bg-[#1A2E42] font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            Continuer →
+          </button>
+        </div>
+      </section>
+
+      <!-- ─── ÉTAPE 2 : Chiffrement ─────────────────────────────── -->
+      <section class="step" data-step="2">
+        <p class="text-xs uppercase tracking-widest text-[#0F1E2D]/50 mb-2">Étape 2 sur 4</p>
+        <h1 class="text-3xl font-extrabold text-[#0F1E2D] mb-3 tracking-tight">Votre clé de chiffrement</h1>
+        <p class="text-[#0F1E2D]/60 mb-8">
+          Cette passphrase chiffre vos données <em>avant</em> qu'elles ne quittent votre NAS. OVHcloud n'y a pas accès. Ni nous, ni personne.
+        </p>
+
+        <div class="bg-[#0F1E2D] text-white rounded-lg p-6 mb-4">
+          <p class="text-xs uppercase tracking-widest text-white/50 mb-3">Passphrase générée par Serenia</p>
+          <div class="flex items-center gap-3 bg-black/30 rounded-md p-4 mb-4">
+            <p id="passphrase" class="mono text-lg flex-1"></p>
+            <button onclick="copyPassphrase()" class="text-white/60 hover:text-white text-xs">Copier</button>
+          </div>
+          <p class="text-xs text-white/60">
+            6 mots aléatoires — suffisant contre une attaque par force brute pendant plusieurs siècles.
+            <button onclick="regeneratePassphrase()" class="underline underline-offset-2 ml-1 hover:text-white">Régénérer</button>
+            <button onclick="toggleManualPassphrase()" class="underline underline-offset-2 ml-3 hover:text-white">Saisir la mienne</button>
+          </p>
+          <div id="manual_passphrase_wrap" class="hidden mt-4">
+            <label class="text-xs uppercase tracking-widest text-white/50 block mb-2">Passphrase existante</label>
+            <input type="text" id="manual_passphrase_input" oninput="setManualPassphrase(this.value)"
+                   class="w-full mono text-sm px-3 py-2.5 bg-black/30 border border-white/10 rounded-md text-white placeholder-white/30"
+                   placeholder="Collez votre passphrase existante ici" />
+          </div>
+          <p class="hidden">.
+          </p>
+        </div>
+
+        <div class="bg-[#E8A53B]/15 border border-[#E8A53B]/40 rounded-lg p-5 mb-6 flex gap-4">
+          <div class="text-2xl">⚠️</div>
+          <div class="text-sm text-[#0F1E2D]">
+            <p class="font-semibold mb-1">Notez cette passphrase en lieu sûr, dès maintenant.</p>
+            <p class="text-[#0F1E2D]/80">
+              Sans elle, <strong>vos sauvegardes sont définitivement illisibles</strong>. Nous suggérons un gestionnaire de mots de passe (Bitwarden, 1Password) ou un coffre-fort physique.
+            </p>
+          </div>
+        </div>
+
+        <label class="flex items-start gap-3 cursor-pointer mb-6">
+          <input type="checkbox" id="confirm_passphrase" onchange="document.getElementById('btn_next_2').disabled = !this.checked" class="mt-1 w-4 h-4 accent-[#0F1E2D]" />
+          <span class="text-sm text-[#0F1E2D]">
+            Je confirme avoir <strong>copié ma passphrase dans un endroit sûr</strong> et compris qu'elle est irrécupérable.
+          </span>
+        </label>
+
+        <div class="flex items-center justify-between mt-10">
+          <button onclick="goStep(1)" class="text-sm text-[#0F1E2D]/60 hover:text-[#0F1E2D]">← Retour</button>
+          <button id="btn_next_2" onclick="goStep(3)" disabled class="bg-[#0F1E2D] text-white px-6 py-2.5 rounded-md hover:bg-[#1A2E42] font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            Continuer →
+          </button>
+        </div>
+      </section>
+
+      <!-- ─── ÉTAPE 3 : Sources ─────────────────────────────────── -->
+      <section class="step" data-step="3">
+        <p class="text-xs uppercase tracking-widest text-[#0F1E2D]/50 mb-2">Étape 3 sur 4</p>
+        <h1 class="text-3xl font-extrabold text-[#0F1E2D] mb-3 tracking-tight">Que voulez-vous protéger ?</h1>
+        <p class="text-[#0F1E2D]/60 mb-8">Serenia a détecté les dossiers de votre NAS. Cochez ceux à sauvegarder.</p>
+
+        <div id="folders_list" class="bg-white rounded-lg border border-black/8 overflow-hidden mb-4">
+          <div class="p-8 text-center text-[#0F1E2D]/50">Chargement…</div>
+        </div>
+
+        <div id="sources_summary" class="text-sm text-[#0F1E2D]/70 mb-2 flex items-center justify-between px-2"></div>
+
+        <div class="flex items-center justify-between mt-10">
+          <button onclick="goStep(2)" class="text-sm text-[#0F1E2D]/60 hover:text-[#0F1E2D]">← Retour</button>
+          <button id="btn_next_3" onclick="goStep(4)" disabled class="bg-[#0F1E2D] text-white px-6 py-2.5 rounded-md hover:bg-[#1A2E42] font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            Continuer →
+          </button>
+        </div>
+      </section>
+
+      <!-- ─── ÉTAPE 4 : Récap + validation ──────────────────────── -->
+      <section class="step" data-step="4">
+        <p class="text-xs uppercase tracking-widest text-[#0F1E2D]/50 mb-2">Étape 4 sur 4</p>
+        <h1 class="text-3xl font-extrabold text-[#0F1E2D] mb-3 tracking-tight">Récapitulatif</h1>
+        <p class="text-[#0F1E2D]/60 mb-8">Vérifiez et validez pour finaliser la configuration.</p>
+
+        <div class="bg-white rounded-lg border border-black/8 p-6 mb-6">
+          <dl id="summary" class="space-y-3 text-sm"></dl>
+        </div>
+
+        <div id="save_result" class="hidden bg-[#4A9B5C]/10 border border-[#4A9B5C]/30 rounded-lg p-4 flex items-center gap-3 mb-6">
+          <div class="text-2xl">✅</div>
+          <div>
+            <p class="text-sm font-semibold text-[#0F1E2D]">Serenia est configurée.</p>
+            <p class="text-xs text-[#0F1E2D]/70 mt-0.5">Redirection vers le tableau de bord…</p>
+          </div>
+        </div>
+
+        <div id="save_error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800 mb-6"></div>
+
+        <div class="flex items-center justify-between mt-10">
+          <button onclick="goStep(3)" class="text-sm text-[#0F1E2D]/60 hover:text-[#0F1E2D]">← Retour</button>
+          <button id="btn_save" onclick="saveConfig()" class="bg-[#0F1E2D] text-white px-6 py-2.5 rounded-md hover:bg-[#1A2E42] font-medium text-sm">
+            Enregistrer et activer ✓
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // ─── État global ─────────────────────────────────────────
+    const config = {
+      ovh_region: 'eu-west-par',
+      ovh_endpoint: 's3.eu-west-par.io.cloud.ovh.net',
+      ovh_bucket: '',
+      ovh_access_key: '',
+      ovh_secret_key: '',
+      restic_password: '',
+      sources: [],
+      hostname: 'nas',
+      keep_daily: 7,
+      keep_weekly: 4,
+      keep_monthly: 6,
+      schedule_hour: 3,
+    };
+
+    // ─── Navigation entre étapes ────────────────────────────
+    function goStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.querySelector(`.step[data-step="${n}"]`).classList.add('active');
+      document.querySelectorAll('.step-indicator').forEach((el, i) => {
+        el.classList.toggle('opacity-40', (i + 1) !== n);
+        const dot = el.querySelector('div');
+        if (i + 1 < n) { dot.className = 'w-6 h-6 rounded-full bg-[#4A9B5C] text-white flex items-center justify-center text-xs font-medium'; dot.textContent = '✓'; }
+        else if (i + 1 === n) { dot.className = 'w-6 h-6 rounded-full bg-[#0F1E2D] text-white flex items-center justify-center text-xs font-medium'; dot.textContent = i + 1; }
+        else { dot.className = 'w-6 h-6 rounded-full bg-black/10 text-[#0F1E2D] flex items-center justify-center text-xs font-medium'; dot.textContent = i + 1; }
+      });
+      if (n === 3) loadFolders();
+      if (n === 4) renderSummary();
+      // Si un dépôt existe déjà, on ouvre automatiquement le champ "Saisir la mienne"
+      if (n === 2 && config._repo_exists) {
+        const wrap = document.getElementById('manual_passphrase_wrap');
+        if (wrap) wrap.classList.remove('hidden');
+        document.getElementById('passphrase').textContent = '(saisissez votre passphrase existante ci-dessous)';
+        config.restic_password = '';
+      }
+    }
+
+    // ─── Étape 1 : région → endpoint ────────────────────────
+    document.getElementById('ovh_region').addEventListener('change', e => {
+      const endpoint = e.target.selectedOptions[0].dataset.endpoint;
+      document.getElementById('ovh_endpoint').value = endpoint;
+    });
+
+    // ─── Étape 1 : test connexion S3 (sans passphrase) ────
+    async function testConnection() {
+      const btn = document.getElementById('btn_test');
+      const result = document.getElementById('test_result');
+      btn.disabled = true;
+      btn.textContent = 'Test en cours…';
+      result.textContent = '';
+
+      config.ovh_region = document.getElementById('ovh_region').value;
+      config.ovh_endpoint = document.getElementById('ovh_endpoint').value;
+      config.ovh_bucket = document.getElementById('ovh_bucket').value;
+      config.ovh_access_key = document.getElementById('ovh_access_key').value;
+      config.ovh_secret_key = document.getElementById('ovh_secret_key').value;
+
+      try {
+        const r = await fetch('/api/test-s3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ovh_region: config.ovh_region,
+            ovh_endpoint: config.ovh_endpoint,
+            ovh_bucket: config.ovh_bucket,
+            ovh_access_key: config.ovh_access_key,
+            ovh_secret_key: config.ovh_secret_key,
+          })
+        });
+        const data = await r.json();
+        if (data.ok) {
+          result.innerHTML = '<span class="text-[#4A9B5C]">✓ ' + data.message + '</span>';
+          document.getElementById('btn_next_1').disabled = false;
+          // Informe l'étape 2 si un dépôt existe (elle demandera "Saisir la mienne")
+          config._repo_exists = !!data.repo_exists;
+        } else {
+          result.innerHTML = '<span class="text-red-600">✗ ' + (data.error || 'Échec') + '</span>';
+        }
+      } catch (err) {
+        result.innerHTML = '<span class="text-red-600">✗ ' + err.message + '</span>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Retester';
+      }
+    }
+
+    // ─── Étape 2 : passphrase ──────────────────────────────
+    const words = ['sauge','hublot','farine','etoile','tonnerre','miroir','cendre','marbre','velours','olive','argile','flute','brume','peuplier','lanterne','cascade','airain','citron','givre','pomme','platane','mousse','crayon','myrtille','safran','frene','oxalis','pluie','sablier','tulipe','vitrail','yucca','zephyr','abricot','banjo','clef','datte','encre','flamme','glace'];
+    function generatePassphrase() {
+      const picked = [];
+      for (let i = 0; i < 6; i++) picked.push(words[Math.floor(Math.random() * words.length)]);
+      picked.splice(3, 0, String(Math.floor(1000 + Math.random() * 9000)));
+      return picked.join('-');
+    }
+    function regeneratePassphrase() {
+      const p = generatePassphrase();
+      config.restic_password = p;
+      document.getElementById('passphrase').textContent = p;
+      const wrap = document.getElementById('manual_passphrase_wrap');
+      if (wrap) wrap.classList.add('hidden');
+      const input = document.getElementById('manual_passphrase_input');
+      if (input) input.value = '';
+    }
+    function toggleManualPassphrase() {
+      const wrap = document.getElementById('manual_passphrase_wrap');
+      wrap.classList.toggle('hidden');
+      if (!wrap.classList.contains('hidden')) {
+        document.getElementById('manual_passphrase_input').focus();
+      }
+    }
+    function setManualPassphrase(val) {
+      config.restic_password = val;
+      document.getElementById('passphrase').textContent = val || '(saisissez votre passphrase ci-dessous)';
+    }
+    function copyPassphrase() {
+      navigator.clipboard.writeText(config.restic_password);
+      event.target.textContent = 'Copié ✓';
+      setTimeout(() => event.target.textContent = 'Copier', 1500);
+    }
+
+    // ─── Étape 3 : chargement dossiers ─────────────────────
+    async function loadFolders() {
+      const list = document.getElementById('folders_list');
+      list.innerHTML = '<div class="p-8 text-center text-[#0F1E2D]/50">Analyse des volumes…</div>';
+      try {
+        const r = await fetch('/api/browse');
+        const data = await r.json();
+        if (!data.folders || data.folders.length === 0) {
+          list.innerHTML = '<div class="p-8 text-center text-[#0F1E2D]/50">Aucun dossier trouvé dans /volume1. Vérifiez le montage dans docker-compose.yml.</div>';
+          return;
+        }
+        list.innerHTML = data.folders.map(f => `
+          <label class="flex items-center gap-4 px-5 py-4 cursor-pointer border-b border-black/5 last:border-b-0 hover:bg-[#F6F1E8]/30">
+            <input type="checkbox" value="${f.path}" onchange="toggleSource(this)" class="w-4 h-4 accent-[#0F1E2D]" />
+            <div class="flex-1">
+              <p class="mono text-sm text-[#0F1E2D]">${f.path}</p>
+            </div>
+            <span class="text-sm font-medium text-[#0F1E2D]">${f.size_display}</span>
+          </label>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="p-8 text-center text-red-600">Erreur : ' + err.message + '</div>';
+      }
+    }
+    function toggleSource(cb) {
+      if (cb.checked) config.sources.push(cb.value);
+      else config.sources = config.sources.filter(s => s !== cb.value);
+      document.getElementById('btn_next_3').disabled = config.sources.length === 0;
+      document.getElementById('sources_summary').innerHTML = `<span>${config.sources.length} source(s) sélectionnée(s)</span>`;
+    }
+
+    // ─── Étape 4 : récap ───────────────────────────────────
+    function renderSummary() {
+      const dl = document.getElementById('summary');
+      dl.innerHTML = `
+        <div class="flex justify-between border-b border-black/5 pb-2"><dt class="text-[#0F1E2D]/60">Région</dt><dd class="mono">${config.ovh_region}</dd></div>
+        <div class="flex justify-between border-b border-black/5 pb-2"><dt class="text-[#0F1E2D]/60">Bucket</dt><dd class="mono">${config.ovh_bucket}</dd></div>
+        <div class="flex justify-between border-b border-black/5 pb-2"><dt class="text-[#0F1E2D]/60">Access Key</dt><dd class="mono">${config.ovh_access_key.slice(0, 8)}…</dd></div>
+        <div class="flex justify-between border-b border-black/5 pb-2"><dt class="text-[#0F1E2D]/60">Chiffrement</dt><dd>Actif (passphrase à ${config.restic_password.length} car.)</dd></div>
+        <div class="flex justify-between border-b border-black/5 pb-2"><dt class="text-[#0F1E2D]/60">Sources</dt><dd>${config.sources.length} dossier(s)</dd></div>
+        <div class="flex justify-between"><dt class="text-[#0F1E2D]/60">Planification</dt><dd>Quotidien à ${String(config.schedule_hour).padStart(2, '0')}:00</dd></div>
+      `;
+    }
+
+    // ─── Étape 4 : validation passphrase puis enregistrement ─
+    async function saveConfig() {
+      const btn = document.getElementById('btn_save');
+      const err = document.getElementById('save_error');
+      const ok = document.getElementById('save_result');
+      err.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Vérification de la passphrase…';
+
+      try {
+        // 1. Valider la passphrase contre le dépôt
+        const v = await fetch('/api/test-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ovh_region: config.ovh_region,
+            ovh_endpoint: config.ovh_endpoint,
+            ovh_bucket: config.ovh_bucket,
+            ovh_access_key: config.ovh_access_key,
+            ovh_secret_key: config.ovh_secret_key,
+            restic_password: config.restic_password,
+          })
+        });
+        const vData = await v.json();
+        if (!vData.ok) {
+          throw new Error(vData.error || 'La passphrase ne correspond pas.');
+        }
+
+        // 2. Tout bon → enregistrer la config
+        btn.textContent = 'Enregistrement…';
+        const r = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+        if (!r.ok) {
+          const data = await r.json();
+          throw new Error(data.detail || 'Échec de l\'enregistrement');
+        }
+        ok.classList.remove('hidden');
+        ok.querySelector('p:last-child').textContent = vData.message + ' Redirection vers le tableau de bord…';
+        setTimeout(() => window.location.href = '/', 2000);
+      } catch (e) {
+        err.textContent = 'Erreur : ' + e.message;
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Enregistrer et activer ✓';
+      }
+    }
+
+    // ─── Init ───────────────────────────────────────────────
+    regeneratePassphrase();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+services:
+  serenia:
+    build: .
+    image: serenia:0.1.0
+    container_name: serenia
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Port de la webUI. Modifiable via .env (SERENIA_PORT).
+      - "${SERENIA_PORT:-8765}:8000"
+    volumes:
+      # Données du NAS montées en lecture seule (adaptez si vos volumes diffèrent)
+      - /volume1:/volume1:ro
+      # Config persistante (config.json généré par la webUI)
+      - ./config:/etc/serenia
+      # Logs Sérénia
+      - ./logs:/var/log/serenia
+      # Cache restic (accélère les backups incrémentaux)
+      - restic-cache:/root/.cache/restic
+    mem_limit: 512m
+    cpus: 1.0
+
+volumes:
+  restic-cache:
