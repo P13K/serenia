@@ -35,8 +35,8 @@ Les applications natives des NAS (Cloud Backup Center d'Asustor, Cloud Sync de S
 
 ```bash
 cd /volume1          # ou tout emplacement de votre choix
-git clone https://github.com/VOTRE-COMPTE/serenia-agent.git
-cd serenia-agent
+git clone https://github.com/P13K/serenia.git
+cd serenia/serenia-agent
 ```
 
 ### 2. Configurer le fichier `.env`
