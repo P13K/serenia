@@ -411,37 +411,65 @@
       const ok = document.getElementById('save_result');
       err.classList.add('hidden');
       btn.disabled = true;
-      btn.textContent = 'Vérification de la passphrase…';
+
+      // Passphrase — récupère aussi ce qui a pu être saisi manuellement
+      const passphrase = document.getElementById('manual_passphrase_input')?.value.trim() || config.restic_password;
+      if (!passphrase) {
+        err.textContent = 'Erreur : la passphrase est vide. Revenez à l\'étape 2.';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        return;
+      }
+      config.restic_password = passphrase;
+
+      // Payload propre — uniquement les champs que le backend attend
+      const payload = {
+        ovh_access_key: config.ovh_access_key,
+        ovh_secret_key: config.ovh_secret_key,
+        ovh_region: config.ovh_region,
+        ovh_endpoint: config.ovh_endpoint,
+        ovh_bucket: config.ovh_bucket,
+        restic_password: config.restic_password,
+        sources: config.sources,
+        hostname: config.hostname || 'nas',
+        keep_daily: config.keep_daily || 7,
+        keep_weekly: config.keep_weekly || 4,
+        keep_monthly: config.keep_monthly || 6,
+        schedule_hour: config.schedule_hour || 3,
+        initialized: false,
+      };
 
       try {
         // 1. Valider la passphrase contre le dépôt
+        btn.textContent = 'Vérification de la passphrase…';
         const v = await fetch('/api/test-connection', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ovh_region: config.ovh_region,
-            ovh_endpoint: config.ovh_endpoint,
-            ovh_bucket: config.ovh_bucket,
-            ovh_access_key: config.ovh_access_key,
-            ovh_secret_key: config.ovh_secret_key,
-            restic_password: config.restic_password,
+            ovh_region: payload.ovh_region,
+            ovh_endpoint: payload.ovh_endpoint,
+            ovh_bucket: payload.ovh_bucket,
+            ovh_access_key: payload.ovh_access_key,
+            ovh_secret_key: payload.ovh_secret_key,
+            restic_password: payload.restic_password,
           })
         });
         const vData = await v.json();
         if (!vData.ok) {
-          throw new Error(vData.error || 'La passphrase ne correspond pas.');
+          throw new Error(vData.error || 'La passphrase ne correspond pas au dépôt.');
         }
 
-        // 2. Tout bon → enregistrer la config
+        // 2. Enregistrer la config complète
         btn.textContent = 'Enregistrement…';
         const r = await fetch('/api/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(config)
+          body: JSON.stringify(payload)
         });
         if (!r.ok) {
-          const data = await r.json();
-          throw new Error(data.detail || 'Échec de l\'enregistrement');
+          let detail = 'Échec de l\'enregistrement';
+          try { detail = (await r.json()).detail || detail; } catch(_) {}
+          throw new Error(detail);
         }
         ok.classList.remove('hidden');
         ok.querySelector('p:last-child').textContent = vData.message + ' Redirection vers le tableau de bord…';
